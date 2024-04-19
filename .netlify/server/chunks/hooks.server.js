@@ -1,29 +1,41 @@
-import { l as lucia } from "./auth.js";
+import { P as PUBLIC_SUPABASE_URL, a as PUBLIC_SUPABASE_ANON_KEY } from "./public.js";
+import { createServerClient } from "@supabase/ssr";
 const handle = async ({ event, resolve }) => {
-  const sessionId = event.cookies.get(lucia.sessionCookieName);
-  if (!sessionId) {
-    event.locals.user = null;
-    event.locals.session = null;
-    return resolve(event);
-  }
-  const { session, user } = await lucia.validateSession(sessionId);
-  if (session && session.fresh) {
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: ".",
-      ...sessionCookie.attributes
-    });
-  }
-  if (!session) {
-    const sessionCookie = lucia.createBlankSessionCookie();
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: ".",
-      ...sessionCookie.attributes
-    });
-  }
-  event.locals.user = user;
-  event.locals.session = session;
-  return resolve(event);
+  event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+    cookies: {
+      get: (key) => event.cookies.get(key),
+      /**
+       * Note: You have to add the `path` variable to the
+       * set and remove method due to sveltekit's cookie API
+       * requiring this to be set, setting the path to an empty string
+       * will replicate previous/standard behaviour (https://kit.svelte.dev/docs/types#public-types-cookies)
+       */
+      set: (key, value, options) => {
+        event.cookies.set(key, value, { ...options, path: "/" });
+      },
+      remove: (key, options) => {
+        event.cookies.delete(key, { ...options, path: "/" });
+      }
+    }
+  });
+  event.locals.safeGetSession = async () => {
+    const {
+      data: { user },
+      error
+    } = await event.locals.supabase.auth.getUser();
+    if (error) {
+      return { session: null, user: null };
+    }
+    const {
+      data: { session }
+    } = await event.locals.supabase.auth.getSession();
+    return { session, user };
+  };
+  return resolve(event, {
+    filterSerializedResponseHeaders(name) {
+      return name === "content-range";
+    }
+  });
 };
 export {
   handle

@@ -1,37 +1,41 @@
 <script lang="ts">
-	export let data: SuperValidated<Infer<FormSchema>>;
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { Input } from '$lib/components/ui/input';
-	import { formSchema, type FormSchema } from './schema';
 	import SuperDebug, { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
+	import { formSchema, type FormSchema } from '$lib/schema';
 	import * as Form from '$lib/components/ui/form';
+
+	export let data: SuperValidated<Infer<FormSchema>>;
 
 	const form = superForm(data, {
 		validators: zodClient(formSchema)
 	});
 
-	const { form: formData, enhance, constraints } = form;
+	const { form: formData, enhance, constraints, errors, message } = form;
 </script>
 
 <form method="POST" use:enhance>
 	<div class="flex flex-col gap-3">
-		<Form.Field {form} name="username">
+		<Form.Field {form} name="email">
 			<Form.Control let:attrs>
-				<Form.Label>Uporabniško ime</Form.Label>
+				<Form.Label>E-mail</Form.Label>
 				<Input
 					{...attrs}
-					bind:value={$formData.username}
-					type="text"
+					bind:value={$formData.email}
+					type="email"
 					required
-					{...$constraints.username}
+					autocomplete="email"
+					{...$constraints.email}
 				/>
 			</Form.Control>
-			<Form.FieldErrors />
+			{#if $errors.email}
+				<Form.FieldErrors {...$errors.email} />
+			{/if}
 		</Form.Field>
 
 		<Form.Field {form} name="password">
 			<Form.Control let:attrs>
-				<Form.Label>Geslo</Form.Label>
+				<Form.Label>Password</Form.Label>
 				<Input
 					{...attrs}
 					bind:value={$formData.password}
@@ -40,8 +44,14 @@
 					{...$constraints.password}
 				/>
 			</Form.Control>
-			<Form.FieldErrors />
+			{#if $errors.password}
+				<Form.FieldErrors {...$errors.password} />
+			{/if}
 		</Form.Field>
-		<Form.Button type="submit" class="mt-4 w-fit">Prijava</Form.Button>
+
+		{#if $message}
+			<small class="text-destructive">{$message}</small>
+		{/if}
+		<Form.Button type="submit" class="mt-4 gap-2 w-fit">Login</Form.Button>
 	</div>
 </form>

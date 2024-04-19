@@ -1,26 +1,21 @@
-import { fail, redirect } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types';
-import { lucia } from '$lib/server/auth';
+import { redirect, type Actions } from '@sveltejs/kit';
+import type { PageServerLoad } from '../$types';
 
-export const load: PageServerLoad = async (event) => {
-	if (!event.locals.user) redirect(303, '/');
+export const load: PageServerLoad = async ({ locals: { safeGetSession } }) => {
+	const { session } = await safeGetSession();
 
-	return {
-		username: event.locals.user.username
-	};
+	if (!session) {
+		throw redirect(303, '/');
+	}
 };
 
 export const actions: Actions = {
-	default: async (event) => {
-		if (!event.locals.session) {
-			return fail(401);
+	default: async ({ locals: { supabase, safeGetSession } }) => {
+		const { session } = await safeGetSession();
+
+		if (session) {
+			await supabase.auth.signOut();
+			throw redirect(303, '/');
 		}
-		await lucia.invalidateSession(event.locals.session.id);
-		const sessionCookie = lucia.createBlankSessionCookie();
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
-		redirect(302, '/');
 	}
 };

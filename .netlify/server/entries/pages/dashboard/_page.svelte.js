@@ -4,7 +4,7 @@ import "../../../chunks/client.js";
 import { B as Button } from "../../../chunks/index3.js";
 const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let { data } = $$props;
-  let user = data.username;
+  let user = data.session?.user.email;
   if ($$props.data === void 0 && $$bindings.data && data !== void 0)
     $$bindings.data(data);
   return `<h1 data-svelte-h="svelte-101alym">Dashboard</h1> <p>Hello, ${escape(user)}</p> <form method="post">${validate_component(Button, "Button").$$render($$result, { type: "submit" }, {}, {

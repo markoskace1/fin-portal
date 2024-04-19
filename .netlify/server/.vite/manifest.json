@@ -8,13 +8,6 @@
       "_internal.js"
     ]
   },
-  "_auth.js": {
-    "file": "chunks/auth.js",
-    "name": "auth",
-    "imports": [
-      "_index4.js"
-    ]
-  },
   "_client.js": {
     "file": "chunks/client.js",
     "name": "client",
@@ -25,20 +18,6 @@
   "_exports.js": {
     "file": "chunks/exports.js",
     "name": "exports"
-  },
-  "_formData.js": {
-    "file": "chunks/formData.js",
-    "name": "formData",
-    "imports": [
-      "_index2.js",
-      "_stores.js",
-      "_index4.js",
-      "_lifecycle.js",
-      "_client.js"
-    ],
-    "css": [
-      "_app/immutable/assets/formData.Crp_yK76.css"
-    ]
   },
   "_index.js": {
     "file": "chunks/index.js",
@@ -60,13 +39,6 @@
       "_index2.js"
     ]
   },
-  "_index4.js": {
-    "file": "chunks/index4.js",
-    "name": "index",
-    "imports": [
-      "_prod-ssr.js"
-    ]
-  },
   "_internal.js": {
     "file": "chunks/internal.js",
     "name": "internal",
@@ -85,6 +57,24 @@
   "_prod-ssr.js": {
     "file": "chunks/prod-ssr.js",
     "name": "prod-ssr"
+  },
+  "_public.js": {
+    "file": "chunks/public.js",
+    "name": "public"
+  },
+  "_schema.js": {
+    "file": "chunks/schema.js",
+    "name": "schema",
+    "imports": [
+      "_index2.js",
+      "_stores.js",
+      "_prod-ssr.js",
+      "_lifecycle.js",
+      "_client.js"
+    ],
+    "css": [
+      "_app/immutable/assets/schema.Crp_yK76.css"
+    ]
   },
   "_ssr.js": {
     "file": "chunks/ssr.js",
@@ -275,7 +265,7 @@
     "src": "src/hooks.server.ts",
     "isDynamicEntry": true,
     "imports": [
-      "_auth.js"
+      "_public.js"
     ]
   },
   "src/lib/images/bear2.png": {
@@ -286,16 +276,23 @@
     "file": "_app/immutable/assets/bull2.CGC6Cgvs.png",
     "src": "src/lib/images/bull2.png"
   },
+  "src/routes/+layout.server.ts": {
+    "file": "entries/pages/_layout.server.ts.js",
+    "name": "entries/pages/_layout.server.ts",
+    "src": "src/routes/+layout.server.ts",
+    "isEntry": true
+  },
   "src/routes/+layout.svelte": {
     "file": "entries/pages/_layout.svelte.js",
     "name": "entries/pages/_layout.svelte",
     "src": "src/routes/+layout.svelte",
     "isEntry": true,
     "imports": [
-      "_ssr.js"
+      "_ssr.js",
+      "_client.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.CIU-P-qW.css"
+      "_app/immutable/assets/_layout.lRko6OXd.css"
     ],
     "assets": [
       "_app/immutable/assets/roboto-cyrillic-ext-500-normal.G9W8hgzQ.woff2",
@@ -336,16 +333,24 @@
       "_app/immutable/assets/roboto-latin-900-normal.7N20yQNm.woff"
     ]
   },
+  "src/routes/+layout.ts": {
+    "file": "entries/pages/_layout.ts.js",
+    "name": "entries/pages/_layout.ts",
+    "src": "src/routes/+layout.ts",
+    "isEntry": true,
+    "imports": [
+      "_public.js"
+    ]
+  },
   "src/routes/+page.server.ts": {
     "file": "entries/pages/_page.server.ts.js",
     "name": "entries/pages/_page.server.ts",
     "src": "src/routes/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "_client.js",
-      "_formData.js",
       "_index.js",
-      "_auth.js"
+      "_client.js",
+      "_schema.js"
     ]
   },
   "src/routes/+page.svelte": {
@@ -356,7 +361,7 @@
     "imports": [
       "_ssr.js",
       "_lifecycle.js",
-      "_formData.js",
+      "_schema.js",
       "_index3.js",
       "_client.js",
       "_index.js",
@@ -369,8 +374,7 @@
     "src": "src/routes/dashboard/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "_index.js",
-      "_auth.js"
+      "_index.js"
     ]
   },
   "src/routes/dashboard/+page.svelte": {
@@ -382,26 +386,6 @@
       "_ssr.js",
       "_client.js",
       "_index3.js"
-    ]
-  },
-  "src/routes/signup/+page.server.ts": {
-    "file": "entries/pages/signup/_page.server.ts.js",
-    "name": "entries/pages/signup/_page.server.ts",
-    "src": "src/routes/signup/+page.server.ts",
-    "isEntry": true,
-    "imports": [
-      "_auth.js",
-      "_index.js"
-    ]
-  },
-  "src/routes/signup/+page.svelte": {
-    "file": "entries/pages/signup/_page.svelte.js",
-    "name": "entries/pages/signup/_page.svelte",
-    "src": "src/routes/signup/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_ssr.js",
-      "_client.js"
     ]
   }
 }

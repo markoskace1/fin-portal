@@ -1,12 +1,11 @@
+import { f as fail, r as redirect } from "../../chunks/index.js";
 import "../../chunks/client.js";
-import { p as parseRequest, m as mergeDefaults, a as mapErrors, r as replaceInvalidDefaults, b as zod, f as formSchema } from "../../chunks/formData.js";
+import { p as parseRequest, m as mergeDefaults, a as mapErrors, r as replaceInvalidDefaults, b as zod, f as formSchema } from "../../chunks/schema.js";
 import "just-clone";
 import "ts-deepmerge";
-import { r as redirect, f as fail } from "../../chunks/index.js";
 import "devalue";
 import "memoize-weak";
-import { d as db, l as lucia } from "../../chunks/auth.js";
-import { Argon2id } from "oslo/password";
+import { AuthApiError } from "@supabase/supabase-js";
 async function superValidate(data, adapter, options) {
   if (data && "superFormValidationLibrary" in data) {
     options = adapter;
@@ -53,43 +52,69 @@ async function superValidate(data, adapter, options) {
   }
   return output;
 }
-const load = async (event) => {
-  if (event.locals.user)
-    redirect(302, "/dashboard");
+function message(form, message2, options) {
+  if (options?.status && options.status >= 400) {
+    form.valid = false;
+  }
+  form.message = message2;
+  const remove = options?.removeFiles !== false;
+  const output = remove ? withFiles({ form }) : { form };
+  return form.valid ? output : fail(options?.status ?? 400, output);
+}
+function withFiles(obj) {
+  if (typeof obj !== "object")
+    return obj;
+  for (const key in obj) {
+    const value = obj[key];
+    if (value instanceof File)
+      delete obj[key];
+    else if (value && typeof value === "object")
+      withFiles(value);
+  }
+  return obj;
+}
+const load = async ({ url, locals: { safeGetSession } }) => {
+  const { session } = await safeGetSession();
+  if (session) {
+    throw redirect(303, "/dashboard");
+  }
   return {
-    form: await superValidate(zod(formSchema))
+    form: await superValidate(zod(formSchema)),
+    url: url.origin
   };
 };
 const actions = {
   default: async (event) => {
-    const formData = await event.request.formData();
-    const username = formData.get("username");
+    const {
+      request,
+      locals: { supabase }
+    } = event;
+    const formData = await request.formData();
+    const form = await superValidate(formData, zod(formSchema));
+    if (!form.valid) {
+      return fail(400, {
+        form
+      });
+    }
+    const email = formData.get("email");
     const password = formData.get("password");
-    const existingUser = await db.execute({
-      sql: "SELECT * FROM user WHERE username = ?",
-      args: [username]
-    });
-    if (!existingUser) {
-      return fail(400, {
-        message: "Invalid username or password"
-      });
-    }
-    const validPassword = await new Argon2id().verify(
-      existingUser.rows[0].hashed_password,
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
       password
-    );
-    if (!validPassword) {
-      return fail(400, {
-        message: "Invalid username or password"
+    });
+    if (error) {
+      if (error instanceof AuthApiError && error.status === 400) {
+        return message(form, "Invalid email or password");
+      }
+      return fail(500, {
+        message: "Server error, please try again later",
+        form
       });
     }
-    const session = await lucia.createSession(existingUser.rows[0].id, {});
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: ".",
-      ...sessionCookie.attributes
-    });
-    redirect(302, "/dashboard");
+    return {
+      form,
+      success: redirect(303, "/dashboard")
+    };
   }
 };
 export {

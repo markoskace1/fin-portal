@@ -1,53 +1,60 @@
-import type { PageServerLoad } from './$types.js';
-import { superValidate } from 'sveltekit-superforms';
-import { formSchema } from './schema';
+import type { PageServerLoad, Actions } from './$types.js';
+import { fail, redirect } from '@sveltejs/kit';
+import { message, superValidate } from 'sveltekit-superforms';
+import { formSchema } from '$lib/schema';
 import { zod } from 'sveltekit-superforms/adapters';
-import { fail, type Actions, redirect } from '@sveltejs/kit';
-import { db, lucia } from '$lib/server/auth';
-import { Argon2id } from 'oslo/password';
+import { AuthApiError } from '@supabase/supabase-js';
 
-export const load: PageServerLoad = async (event) => {
-	if (event.locals.user) redirect(302, '/dashboard');
+export const load: PageServerLoad = async ({ url, locals: { safeGetSession } }) => {
+	const { session } = await safeGetSession();
+
+	if (session) {
+		throw redirect(303, '/dashboard');
+	}
 
 	return {
-		form: await superValidate(zod(formSchema))
+		form: await superValidate(zod(formSchema)),
+		url: url.origin
 	};
 };
 
 export const actions: Actions = {
 	default: async (event) => {
-		const formData = await event.request.formData();
-		const username = formData.get('username') as string;
+		const {
+			request,
+			locals: { supabase }
+		} = event;
+
+		const formData = await request.formData();
+		const form = await superValidate(formData, zod(formSchema));
+
+		if (!form.valid) {
+			return fail(400, {
+				form
+			});
+		}
+
+		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
 
-		const existingUser = await db.execute({
-			sql: 'SELECT * FROM user WHERE username = ?',
-			args: [username]
-		});
-
-		if (!existingUser) {
-			return fail(400, {
-				message: 'Invalid username or password'
-			});
-		}
-
-		const validPassword = await new Argon2id().verify(
-			existingUser.rows[0].hashed_password as string,
+		const { error } = await supabase.auth.signInWithPassword({
+			email,
 			password
-		);
-		if (!validPassword) {
-			return fail(400, {
-				message: 'Invalid username or password'
+		});
+
+		if (error) {
+			if (error instanceof AuthApiError && error.status === 400) {
+				return message(form, 'Invalid email or password');
+			}
+			return fail(500, {
+				message: 'Server error, please try again later',
+				form
 			});
 		}
 
-		const session = await lucia.createSession(existingUser.rows[0].id as string, {});
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
-
-		redirect(302, '/dashboard');
+		return {
+			form,
+			success: redirect(303, '/dashboard')
+		};
 	}
 };

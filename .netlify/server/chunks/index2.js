@@ -1,4 +1,4 @@
-import { n as noop, a as subscribe, r as run_all, j as safe_not_equal, k as is_function } from "./lifecycle.js";
+import { n as noop, a as subscribe, r as run_all, k as safe_not_equal, l as is_function } from "./lifecycle.js";
 const subscriber_queue = [];
 function readable(value, start) {
   return {

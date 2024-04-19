@@ -3,7 +3,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	export let data;
 
-	let user = data.username;
+	let user = data.session?.user.email;
 </script>
 
 <h1>Dashboard</h1>

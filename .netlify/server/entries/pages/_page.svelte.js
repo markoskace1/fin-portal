@@ -3,7 +3,7 @@ import { c as compute_rest_props, h as hasContext, g as getContext, s as setCont
 import "just-clone";
 import "ts-deepmerge";
 import "memoize-weak";
-import { t as tick, s as superForm, z as zodClient, f as formSchema } from "../../chunks/formData.js";
+import { t as tick, s as superForm, z as zodClient, f as formSchema } from "../../chunks/schema.js";
 import { c as cn, w as withGet, n as noop$1, i as isHTMLElement, a as isFunction, b as isElement, e as executeCallbacks, d as addEventListener, m as makeElement, f as addMeltEventListener, o as omit, s as styleToString, u as useEscapeKeydown, g as effect, p as portalAttr, h as createElHelpers, k as kbd, j as isBrowser, l as is_void, B as Button, q as flyAndScale, r as buttonVariants } from "../../chunks/index3.js";
 import "../../chunks/client.js";
 import "../../chunks/index.js";
@@ -1461,11 +1461,15 @@ const Control = Control$1;
 const LoginForm = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $formData, $$unsubscribe_formData;
   let $constraints, $$unsubscribe_constraints;
+  let $errors, $$unsubscribe_errors;
+  let $message, $$unsubscribe_message;
   let { data } = $$props;
   const form = superForm(data, { validators: zodClient(formSchema) });
-  const { form: formData, enhance, constraints } = form;
+  const { form: formData, enhance, constraints, errors, message } = form;
   $$unsubscribe_formData = subscribe(formData, (value) => $formData = value);
   $$unsubscribe_constraints = subscribe(constraints, (value) => $constraints = value);
+  $$unsubscribe_errors = subscribe(errors, (value) => $errors = value);
+  $$unsubscribe_message = subscribe(message, (value) => $message = value);
   if ($$props.data === void 0 && $$bindings.data && data !== void 0)
     $$bindings.data(data);
   let $$settled;
@@ -1474,27 +1478,27 @@ const LoginForm = create_ssr_component(($$result, $$props, $$bindings, slots) =>
   do {
     $$settled = true;
     $$result.head = previous_head;
-    $$rendered = `<form method="POST"><div class="flex flex-col gap-3">${validate_component(Form_field, "Form.Field").$$render($$result, { form, name: "username" }, {}, {
+    $$rendered = `<form method="POST"><div class="flex flex-col gap-3">${validate_component(Form_field, "Form.Field").$$render($$result, { form, name: "email" }, {}, {
       default: () => {
         return `${validate_component(Control, "Form.Control").$$render($$result, {}, {}, {
           default: ({ attrs }) => {
             return `${validate_component(Form_label, "Form.Label").$$render($$result, {}, {}, {
               default: () => {
-                return `Uporabniško ime`;
+                return `E-mail`;
               }
             })} ${validate_component(Input, "Input").$$render(
               $$result,
-              Object.assign({}, attrs, { type: "text" }, { required: true }, $constraints.username, { value: $formData.username }),
+              Object.assign({}, attrs, { type: "email" }, { required: true }, { autocomplete: "email" }, $constraints.email, { value: $formData.email }),
               {
                 value: ($$value) => {
-                  $formData.username = $$value;
+                  $formData.email = $$value;
                   $$settled = false;
                 }
               },
               {}
             )}`;
           }
-        })} ${validate_component(Form_field_errors, "Form.FieldErrors").$$render($$result, {}, {}, {})}`;
+        })} ${$errors.email ? `${validate_component(Form_field_errors, "Form.FieldErrors").$$render($$result, Object.assign({}, $errors.email), {}, {})}` : ``}`;
       }
     })} ${validate_component(Form_field, "Form.Field").$$render($$result, { form, name: "password" }, {}, {
       default: () => {
@@ -1502,7 +1506,7 @@ const LoginForm = create_ssr_component(($$result, $$props, $$bindings, slots) =>
           default: ({ attrs }) => {
             return `${validate_component(Form_label, "Form.Label").$$render($$result, {}, {}, {
               default: () => {
-                return `Geslo`;
+                return `Password`;
               }
             })} ${validate_component(Input, "Input").$$render(
               $$result,
@@ -1516,16 +1520,26 @@ const LoginForm = create_ssr_component(($$result, $$props, $$bindings, slots) =>
               {}
             )}`;
           }
-        })} ${validate_component(Form_field_errors, "Form.FieldErrors").$$render($$result, {}, {}, {})}`;
+        })} ${$errors.password ? `${validate_component(Form_field_errors, "Form.FieldErrors").$$render($$result, Object.assign({}, $errors.password), {}, {})}` : ``}`;
       }
-    })} ${validate_component(Form_button, "Form.Button").$$render($$result, { type: "submit", class: "mt-4 w-fit" }, {}, {
-      default: () => {
-        return `Prijava`;
+    })} ${$message ? `<small class="text-destructive">${escape($message)}</small>` : ``} ${validate_component(Form_button, "Form.Button").$$render(
+      $$result,
+      {
+        type: "submit",
+        class: "mt-4 gap-2 w-fit"
+      },
+      {},
+      {
+        default: () => {
+          return `Login`;
+        }
       }
-    })}</div></form>`;
+    )}</div></form>`;
   } while (!$$settled);
   $$unsubscribe_formData();
   $$unsubscribe_constraints();
+  $$unsubscribe_errors();
+  $$unsubscribe_message();
   return $$rendered;
 });
 const Dialog_title = create_ssr_component(($$result, $$props, $$bindings, slots) => {
@@ -1785,7 +1799,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let { data } = $$props;
   if ($$props.data === void 0 && $$bindings.data && data !== void 0)
     $$bindings.data(data);
-  return `<main class="relative flex flex-col w-full h-screen justify-center items-center gap-6 overflow-hidden"><div class="flex flex-row text-primary items-center gap-3">${validate_component(LineChart, "LineChart").$$render($$result, { strokeWidth: 1.2, size: 64 }, {}, {})} <h1 class="font-light" data-svelte-h="svelte-699lzt">BM investicije</h1></div> ${validate_component(Root, "Dialog.Root").$$render($$result, {}, {}, {
+  return `<main class="relative flex flex-col w-full h-screen justify-center items-center gap-6 overflow-hidden"><div class="flex flex-row text-primary items-center gap-3">${validate_component(LineChart, "LineChart").$$render($$result, { strokeWidth: 1.2, size: 64 }, {}, {})} <h1 class="font-light" data-svelte-h="svelte-1u0t1ag">BM investments</h1></div> ${validate_component(Root, "Dialog.Root").$$render($$result, {}, {}, {
     default: () => {
       return `${validate_component(Trigger, "Dialog.Trigger").$$render(
         $$result,
@@ -1795,7 +1809,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
         {},
         {
           default: () => {
-            return `Prijava v portal`;
+            return `Enter`;
           }
         }
       )} ${validate_component(Dialog_content, "Dialog.Content").$$render($$result, { class: "max-w-md" }, {}, {
@@ -1816,7 +1830,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
                   {},
                   {
                     default: () => {
-                      return `${validate_component(LogIn, "LogIn").$$render($$result, { strokeWidth: 3, size: 32 }, {}, {})}finančni portal`;
+                      return `${validate_component(LogIn, "LogIn").$$render($$result, { strokeWidth: 3, size: 32 }, {}, {})}finport`;
                     }
                   }
                 )} ${validate_component(Dialog_description, "Dialog.Description").$$render($$result, {}, {}, {

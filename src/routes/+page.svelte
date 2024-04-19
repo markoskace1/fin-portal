@@ -25,15 +25,15 @@
 	<div class="flex flex-row text-primary items-center gap-3">
 		<LineChart strokeWidth={1.2} size={64} />
 
-		<h1 class="font-light">BM investicije</h1>
+		<h1 class="font-light">BM investments</h1>
 	</div>
 
 	<Dialog.Root>
-		<Dialog.Trigger class={buttonVariants({ variant: 'default' })}>Prijava v portal</Dialog.Trigger>
+		<Dialog.Trigger class={buttonVariants({ variant: 'default' })}>Enter</Dialog.Trigger>
 		<Dialog.Content class="max-w-md">
 			<Dialog.Header class="flex flex-col justify-center items-center py-6">
 				<Dialog.Title class="flex items-center gap-2 text-3xl uppercase text-primary"
-					><LogIn strokeWidth={3} size={32} />finančni portal</Dialog.Title
+					><LogIn strokeWidth={3} size={32} />finport</Dialog.Title
 				>
 				<Dialog.Description>Vpogled v stanje vašega portfelja</Dialog.Description>
 			</Dialog.Header>
